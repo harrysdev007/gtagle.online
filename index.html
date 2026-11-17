@@ -1,36 +1,47 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-layout="classic">
 <head>
+  <base href="/">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CapyScreen — Less chaos. More capy.</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico?v=43">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/capyscreen-32.png?v=43">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/capyscreen-192.png?v=43">
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/capyscreen-180.png?v=43">
-  <link rel="manifest" href="site.webmanifest?v=43">
-  <meta property="og:title" content="CapyScreen — Less chaos. More capy.">
-  <meta property="og:image" content="assets/capy/capyscreen-logo.png">
+  <title>GTAXIOM — Grand Theft Memes.</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=54">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/gta/gtaxiom-favicon-32.png?v=54">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/gta/gtaxiom-apple-180.png?v=54">
+  <link rel="manifest" href="site.webmanifest?v=54">
+  <meta property="og:title" content="GTAXIOM — Grand Theft Memes.">
+  <meta property="og:image" content="assets/gta/vicefeed-logo-v2.png">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:image" content="assets/capy/capyscreen-logo.png">
-  <meta name="description" content="Less chaos. More capy. Discover and collect only capybara memes with CapyScreen.">
+  <meta name="twitter:image" content="assets/gta/vicefeed-logo-v2.png">
+  <meta name="description" content="Grand Theft Memes. Discover GTA VI, GTA Online, San Andreas and Vice City memes.">
   <meta name="color-scheme" content="dark light">
-  <meta name="theme-color" content="#303034">
+  <meta name="theme-color" content="#130e25">
   <link rel="preload" href="assets/fonts/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk79FO_F.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="assets/fonts/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj42Vksj.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="assets/fonts/fonts.css?v=43">
-  <link rel="stylesheet" href="css/memegle.css?v=43">
-  <link rel="stylesheet" href="css/memedex.css?v=43">
+  <link rel="stylesheet" href="assets/fonts/fonts.css?v=50">
+  <link rel="stylesheet" href="css/memegle.css?v=50">
+  <link rel="stylesheet" href="css/memedex.css?v=50">
   <script>
     // Apply saved theme before first paint to avoid a flash.
     try {
-      var s = JSON.parse(localStorage.getItem('capyscreen.settings') || '{}');
+      var s = JSON.parse(localStorage.getItem('vicefeed.settings') || '{}');
       if (s.theme === 'light' || s.theme === 'dark') document.documentElement.setAttribute('data-theme', s.theme);
     } catch (e) {}
   </script>
-  <link rel="stylesheet" href="css/capyscreen.css?v=43">
+  <script>
+    try {
+      var layout = new URLSearchParams(location.search).get('layout') || localStorage.getItem('vicefeed.layout');
+      document.documentElement.dataset.layout = layout === 'terminal' ? 'terminal' : 'classic';
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="css/vicefeed.css?v=55">
+  <link rel="stylesheet" href="css/terminal.css?v=51">
 </head>
 <body>
+  <div class="layout-switch" role="group" aria-label="Site design">
+    <button data-action="layout" data-layout="classic" title="Вернуться к предыдущему дизайну">Classic</button>
+    <button data-action="layout" data-layout="terminal" title="Compact terminal design">Terminal</button>
+  </div>
   <div id="terminal-chrome"></div>
   <div id="app" aria-live="polite"></div>
   <footer id="terminal-footer"></footer>
@@ -38,7 +49,7 @@
   <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden">
   <input id="lens-input" type="file" accept="image/*" class="hidden">
   <input id="import-input" type="file" accept="application/json" class="hidden">
-  <noscript><p style="padding:40px;text-align:center;font-family:var(--font)">CapyScreen needs JavaScript.</p></noscript>
-  <script type="module" src="js/app.js?v=44"></script>
+  <noscript><p style="padding:40px;text-align:center;font-family:var(--font)">GTAXIOM needs JavaScript.</p></noscript>
+  <script type="module" src="js/app.js?v=58"></script>
 </body>
 </html>

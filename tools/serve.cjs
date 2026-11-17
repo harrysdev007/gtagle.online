@@ -8,7 +8,10 @@ const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
 http.createServer((req, res) => {
   let file;
   try {
-    file = path.resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://localhost').pathname));
+    const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    file = /^\/(?:search|settings|tags|folders|upload)\/?$/.test(pathname)
+      ? path.join(root, 'index.html')
+      : path.resolve(root, '.' + pathname);
   } catch { res.writeHead(400).end(); return; }
   if (file !== root && !file.startsWith(root + path.sep)) { res.writeHead(403).end(); return; }
   if (file === root) file = path.join(root, 'index.html');

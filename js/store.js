@@ -1,8 +1,8 @@
 // Memegle storage: bundled index (data/memes.json) + IndexedDB for uploads, edits and embeddings.
-const DB_NAME = 'capyscreen';
+const DB_NAME = 'vicefeed';
 const DB_VERSION = 1;
-const SETTINGS_KEY = 'capyscreen.settings';
-const HISTORY_KEY = 'capyscreen.history';
+const SETTINGS_KEY = 'vicefeed.settings';
+const HISTORY_KEY = 'vicefeed.history';
 
 export const DEFAULT_SETTINGS = {
   theme: 'dark',            // system | light | dark

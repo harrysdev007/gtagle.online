@@ -1,12 +1,22 @@
 {
-  "name": "CapyScreen",
-  "short_name": "CapyScreen",
+  "name": "GTAXIOM \u2014 Grand Theft Memes",
+  "short_name": "GTAXIOM",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#303034",
-  "theme_color": "#303034",
+  "background_color": "#130e25",
+  "theme_color": "#130e25",
   "icons": [
-    {"src": "icons/capyscreen-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icons/capyscreen-512.png", "sizes": "512x512", "type": "image/png"}
+    {
+      "src": "assets/gta/gtaxiom-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/gta/gtaxiom-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }

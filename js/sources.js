@@ -1,13 +1,14 @@
-import { isCapy, capyQuery } from './capy.js?v=43';
+import { isGta, gtaQuery } from './gta.js?v=54';
 // Memegle live sources: everything here runs in the browser against public APIs (no server).
 // Each adapter returns normalized items:
 // { id, source, kind: 'image'|'gif'|'template', title, body, image, thumb, width, height, url, site, path,
 //   author, score, comments, created, nsfw, tags }
-import { tokenize, stem } from './search.js?v=18';
+import { tokenize, stem } from './search.js?v=50';
 
 export const SOURCE_INFO = {
+  original: { label: 'Local originals', site: 'GTAXIOM', hidden: true, needsKey: false },
   lemmy: { label: 'Lemmy', site: 'lemmy.world', needsKey: false, desc: 'Meme communities across the Fediverse (memes, dankmemes, programmer humor, comics...)' },
-  reddit: { label: 'Reddit', site: 'reddit.com', needsKey: false, desc: 'Hot posts from r/memes, r/dankmemes, r/me_irl and friends via meme-api.com (Reddit blocks direct browser access)' },
+  reddit: { label: 'Reddit', site: 'reddit.com', needsKey: false, desc: 'GTA, GTA6, GTA Online, San Andreas and Vice City communities via meme-api.com' },
   imgflip: { label: 'Imgflip templates', site: 'imgflip.com', needsKey: false, desc: 'The 100 most popular meme templates right now' },
   tenor: { label: 'Tenor GIFs', site: 'tenor.com', needsKey: true, keyName: 'tenorKey', keyUrl: 'https://developers.google.com/tenor/guides/quickstart', desc: "Google's GIF search. Free API key from Google Cloud." },
   giphy: { label: 'Giphy', site: 'giphy.com', needsKey: true, keyName: 'giphyKey', keyUrl: 'https://developers.giphy.com/dashboard/', desc: 'GIF and sticker search. Free API key.' },
@@ -20,7 +21,7 @@ export const SOURCE_INFO = {
 // Instances whose full-text search is queried for image posts in any meme-like community.
 export const LEMMY_GLOBAL_HOSTS = ['lemmy.world', 'lemmy.ml', 'sh.itjust.works', 'lemmy.dbzer0.com', 'lemmy.blahaj.zone', 'sopuli.xyz', 'programming.dev'];
 const MEME_COMMUNITY_RE = /meme|humor|humour|shitpost|comic|funny|dank|_irl|irl$|joke|cursed|lmao|lol|wholesome|greentext|satire|parody|absurd|onehundredninetysix|^196|clevercomebacks|antiquememes|fakehistory|dumb|silly|chaotic|unix_surrealism|programmerhumor|tenforward|risa/i;
-export const DEFAULT_MASTODON_TAGS = ['capybara', 'capy'];
+export const DEFAULT_MASTODON_TAGS = ['gta', 'gta6', 'gtavi', 'gtaonline', 'gtav', 'sanandreas', 'vicecity', 'gtamemes'];
 
 // name@instance, searched through lemmy.world (federated) unless the community's own instance is listed as host.
 export const DEFAULT_LEMMY_COMMUNITIES = [
@@ -32,7 +33,7 @@ export const DEFAULT_LEMMY_COMMUNITIES = [
   'tenforward@lemmy.world', 'risa@startrek.website', 'clevercomebacks@lemmy.world', 'animemes@ani.social', 'dach@feddit.org',
 ];
 const LEMMY_SELF_HOSTS = new Set(['lemmy.ml', 'sopuli.xyz', 'programming.dev', 'sh.itjust.works', 'lemmy.dbzer0.com', 'lemmy.blahaj.zone']);
-export const DEFAULT_REDDIT_SUBS = ['capybara', 'capybaras', 'capybaramemes'];
+export const DEFAULT_REDDIT_SUBS = ['GTA', 'GTA6', 'GTAV', 'gtaonline', 'GTAmemes', 'sanandreas', 'ViceCity', 'GTAIV'];
 
 const IMG_RE = /\.(jpe?g|png|gif|webp|avif)(\?|#|$)/i;
 const cache = new Map();
@@ -135,7 +136,7 @@ function lemmyItem(p, instanceLabel, { strict = false } = {}) {
   const url = post.url || '';
   const isImg = /^image\//.test(post.url_content_type || '') || IMG_RE.test(url) || /\/pictrs\/image\//.test(url);
   if (!isImg) return null;
-  if (strict && !MEME_COMMUNITY_RE.test(`${c.name} ${c.title || ''}`) && !/\bmemes?\b/i.test(post.name) && !isCapy({title:post.name,body:post.body,path:`c/${c.name}`})) return null;
+  if (strict && !MEME_COMMUNITY_RE.test(`${c.name} ${c.title || ''}`) && !/\bmemes?\b/i.test(post.name) && !isGta({title:post.name,body:post.body,path:`c/${c.name}`})) return null;
   const image = url;
   if (!image) return null;
   const fullText = stripMarkdown(post.body);
@@ -293,7 +294,7 @@ function mastodonItems(statuses, { requireMemeTag = false } = {}) {
     const st = s.reblog || s;
     const text = htmlToText(st.content);
     const tags = (st.tags || []).map((t) => t.name.toLowerCase());
-    if (requireMemeTag && !tags.some((t) => MASTO_MEME_TAG_RE.test(t)) && !/\bmemes?\b/i.test(text) && !isCapy({text,tags})) continue;
+    if (requireMemeTag && !tags.some((t) => MASTO_MEME_TAG_RE.test(t)) && !/\bmemes?\b/i.test(text) && !isGta({text,tags})) continue;
     for (const m of st.media_attachments || []) {
       if (m.type !== 'image' && m.type !== 'gifv') continue;
       const image = m.type === 'gifv' ? (m.preview_url || m.url) : m.url;
@@ -364,7 +365,7 @@ export async function fetchRedditPool({ subs = DEFAULT_REDDIT_SUBS, count = 50 }
 export async function searchReddit(q, opts = {}) {
   const pool = await fetchRedditPool(opts);
   const qTokens = [...new Set(tokenize(q))];
-  const items = pool.filter((it) => relevance(it, qTokens, null) >= 0.4);
+  const items = pool.filter((it) => isGta(it) && relevance({...it,text:`${it.body} ${it.path}`}, qTokens, null) >= 0.4);
   return { items, poolSize: pool.length };
 }
 
@@ -391,7 +392,7 @@ export async function fetchImgflip() {
       nsfw: false,
       tags: ['template'],
       rank: i + 1,
-    })).filter(isCapy);
+    })).filter(isGta);
   });
 }
 
@@ -514,14 +515,14 @@ export function googleSuggest(q, { lang = 'en' } = {}) {
 
 /** Meme-flavoured Google suggestions: ask for "<q> meme" and show the real Google completions. */
 export async function memeSuggestions(q, opts) {
-  const base = capyQuery(q);
+  const base = gtaQuery(q);
   if (!base) return [];
   const asked = /meme/i.test(base) ? base : `${base} meme`;
   const list = await googleSuggest(asked, opts);
   const out = [];
   for (const s of list) {
     const clean = s.replace(/\s+/g, ' ').trim();
-    if (!isCapy({title:clean}) || clean.toLowerCase() === base.toLowerCase()) continue;
+    if (!isGta({title:clean}) || clean.toLowerCase() === base.toLowerCase()) continue;
     out.push(clean);
   }
   return out.slice(0, 10);
@@ -549,13 +550,18 @@ export function createSession(q, opts, adapters) {
   const emit = () => { if (!session.done) session.elapsed = performance.now() - session.startedAt; for (const l of session.listeners) l(session); };
   const add = (source, items) => {
     for (const it of items) {
-      if (!isCapy(it)) continue;
+      if (!isGta(it)) continue;
       if (opts.safe && it.nsfw) continue;
       if (session.byId.has(it.id)) continue;
       session.byId.set(it.id, it);
       session.items.push(it);
     }
-    session.items = rank(dedupe(session.items), q, { sort: opts.sort });
+    const ranked = rank(dedupe(session.items), q, { sort: opts.sort });
+    // Pagination appends new discoveries without shuffling the feed under the reader.
+    if (session.previousOrder) {
+      const byId = new Map(ranked.map(item=>[item.id,item]));
+      session.items = [...session.previousOrder.map(id=>byId.get(id)).filter(Boolean), ...ranked.filter(item=>!session.previousIds.has(item.id))];
+    } else session.items = ranked;
   };
   const runAll = (list) => {
     session.done = false;
@@ -580,7 +586,13 @@ export function createSession(q, opts, adapters) {
     return Promise.allSettled(runs).then(() => { if (session.pending === 0) { session.done = true; session.elapsed = performance.now() - session.startedAt; emit(); } });
   };
   session.subscribe = (fn) => { session.listeners.add(fn); return () => session.listeners.delete(fn); };
-  session.extend = (list) => { session.page++; return runAll(list); };
+  session.extend = (list) => {
+    if (!session.done) return Promise.resolve();
+    session.previousOrder = session.items.map(item=>item.id);
+    session.previousIds = new Set(session.previousOrder);
+    session.page++;
+    return runAll(list);
+  };
   runAll(adapters);
   return session;
 }
