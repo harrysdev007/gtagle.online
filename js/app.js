@@ -13,7 +13,7 @@ import {
   SOURCE_INFO, DEFAULT_LEMMY_COMMUNITIES, DEFAULT_REDDIT_SUBS, searchLemmy, searchLemmyGlobal, trendingLemmy, trendingMastodon, searchMastodon, searchReddit, fetchRedditPool,
   searchBluesky, trendingBluesky,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
-  memeSuggestions, spellCorrection, createSession, favicon, relevance,
+  memeSuggestions, spellCorrection, createSession, favicon, relevance, rank,
 } from './sources.js?v=55';
 
 // ------------------------------------------------------------------ icons
@@ -133,7 +133,15 @@ function buildUrl(name, params = {}) {
   const s = qs.toString();
   return `/${name === 'home' ? '' : name}${s ? '?' + s : ''}`;
 }
-function routeChanged() { document.body.classList.remove('dex-menu-open'); state.limit = 0; render(); }
+function isSortChange(previous, next) {
+  return ['home','search'].includes(previous.name) && ['home','search'].includes(next.name)
+    && previous.params.sort !== next.params.sort && sameExcept(previous.params,next.params,['sort']);
+}
+function routeChanged() {
+  document.body.classList.remove('dex-menu-open');
+  if (!isSortChange(state.route,parseRoute())) state.limit = 0;
+  render();
+}
 function go(name, params = {}) {
   const url = buildUrl(name, params);
   if (url === location.pathname + location.search) return;
@@ -1193,6 +1201,21 @@ async function render(force = false) {
   const token = ++renderToken;
   const prev = state.route;
   state.route = parseRoute();
+  const preserveScroll = isSortChange(prev,state.route);
+  const sortingScroll = window.scrollY;
+  // Retain loaded results while the new server ordering is fetched. This also
+  // preserves page height instead of collapsing to a short loading skeleton.
+  if (preserveScroll) {
+    const previousParams = state.route.params;
+    state.route = prev;
+    const oldSession = sessionFor(qp());
+    state.route = {name:parseRoute().name,params:previousParams};
+    const nextSession = sessionFor(qp());
+    if (!nextSession.items.length) {
+      nextSession.items = rank(oldSession.items.slice(), nextSession.q, {sort:nextSession.opts.sort});
+      nextSession.byId = new Map(oldSession.byId);
+    }
+  }
   const app = $('#app');
   terminalChrome();
   if (state.route.name !== 'search') state.limit = 0;
@@ -1218,7 +1241,8 @@ async function render(force = false) {
     default: renderHome(app);
   }
   if (token !== renderToken) return;
-  if (state.route.name === 'search' && (p.id || force)) window.scrollTo(0, prevScroll);
+  if (preserveScroll) window.scrollTo(0,sortingScroll);
+  else if (state.route.name === 'search' && (p.id || force)) window.scrollTo(0, prevScroll);
   else window.scrollTo(0, 0);
 }
 function sameExcept(a, b, keys) {
