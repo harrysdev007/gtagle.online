@@ -6,6 +6,8 @@ Run locally with `node tools/serve.cjs`, then open http://127.0.0.1:8000. No bui
 
 Navigation uses clean History API URLs (`/search`, `/settings`, `/tags`, `/folders`). The local server serves `index.html` for these routes, while missing assets return 404. Other hosting must provide the same SPA fallback for direct links and refreshes. Old `#/…` bookmarks are converted automatically.
 
+Vercel hosting is configured in `vercel.json`: application routes rewrite internally to `/index.html`, preserving the URL and query parameters. Static assets and unknown paths retain normal file/404 handling. Deploy from the repository root so Vercel reads this configuration.
+
 Use the top-right **Terminal / Classic** switch to choose the compact table/Pulse layout or restore the original Vice City hero and card grid. The choice persists in `vicefeed.layout`; saved memes and search settings are shared. Direct layout links also work: `/?layout=classic` and `/?layout=terminal`. Classic styles remain in `css/vicefeed.css`; the alternate layout is isolated in `css/terminal.css` and `js/terminal.js`.
 
 Discovery searches Lemmy, Reddit, Bluesky and Mastodon for GTA VI, V, IV, Online, San Andreas, Vice City, characters and meme phrases. Topic chips and query aliases live in `js/gta.js`. Tenor, Giphy and Imgur work with optional user API keys. A shared metadata/community filter rejects unrelated content across result streams and the local library. This is metadata filtering, not image recognition. Four original local GTA meme cards remain available when public APIs are unavailable.
