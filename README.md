@@ -6,6 +6,8 @@
 
 Discover memes across the GTA universe, explore multiple sources, and keep your favorites in one place.
 
+**GTAGLE is live and ready to use at [gtagle.online](https://gtagle.online). No installation or account required.**
+
 [Explore the site](https://gtagle.online) · [Run locally](#run-locally) · [How it works](#how-it-works)
 
 </div>
