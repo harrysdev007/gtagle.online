@@ -1,0 +1,34 @@
+/* Original Memegle layout with local fonts and GTA topic shortcuts. */
+:root{--font:Arial,sans-serif;--font-logo:'Space Grotesk',Arial,sans-serif}
+.google-topics{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 16px;max-width:620px;margin:23px auto 0;padding:0 16px}
+.google-topics a{font-size:13px;color:var(--blue);text-decoration:none}.google-topics a:hover{text-decoration:underline}
+.google-social{display:inline-flex;align-items:center;gap:5px}
+.logo.wave span{animation:none}.logo:hover span{animation:none}
+.img-card{max-width:none}.searchbox input:focus-visible{outline:none}
+a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.load-feedback{text-align:center;color:var(--text-3);font-size:13px;padding:15px}
+#terminal-chrome:empty,#terminal-footer:empty{display:none}
+.home .offered{max-width:650px;line-height:1.7;padding:0 16px}
+@media(max-width:640px){.home-top .google-social{font-size:11px}.home-top .right{gap:12px}.home .logo{font-size:62px}.google-topics{gap:10px 16px}.home .offered{font-size:12px}.results-bar .google-social{display:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important}}
+
+/* Vice City wordmark and character stickers, on the original search canvas. */
+.logo{background:none;color:var(--text)}
+.logo span:nth-child(1){color:#4285f4}
+.logo span:nth-child(2){color:#ea4335}
+.logo span:nth-child(3){color:#fbbc05}
+.logo span:nth-child(4){color:#4285f4}
+.logo span:nth-child(5){color:#34a853}
+.logo span:nth-child(6){color:#ea4335}
+.home .logo-wrap{display:flex;flex-direction:column;align-items:center;margin-top:clamp(25px,calc(40vh - 230px),150px)}
+.home .logo{margin-top:8px;margin-bottom:28px;font-weight:600;letter-spacing:-5px;font-size:90px}
+.search-mascot{width:145px;height:145px;object-fit:contain;filter:drop-shadow(0 8px 12px #5d286b20)}
+.search-stickers{position:absolute;inset:0;pointer-events:none;z-index:3}
+.search-sticker{position:absolute;display:block;width:88px;height:95px;background:var(--bg);border:1px solid var(--border);border-radius:15px;box-shadow:0 5px 16px #37204a24;overflow:hidden;top:-85px}
+.search-sticker img{position:absolute;width:190px;height:190px;max-width:none;object-fit:contain;top:-3px}
+.sticker-jason{left:-100px;transform:rotate(-11deg)}.sticker-jason img{left:-5px}
+.sticker-lucia{right:-100px;transform:rotate(10deg)}.sticker-lucia img{right:-4px}
+.home .searchbox-inner{box-shadow:0 2px 9px #4c28551a}
+.home .searchbox-inner:focus-within{border-color:#d99acb;box-shadow:0 2px 12px #cb77b92b}
+@media(max-width:900px){.sticker-jason{left:-55px}.sticker-lucia{right:-55px}.search-sticker{width:64px;height:73px;top:-75px}.search-sticker img{width:150px;height:150px}.home .logo{font-size:78px}}
+@media(max-width:640px){.home .logo-wrap{margin-top:24px}.search-mascot{width:116px;height:116px}.home .logo{font-size:58px;letter-spacing:-3px;margin-bottom:44px}.search-sticker{width:43px;height:48px;top:-38px;border-radius:9px}.search-sticker img{width:100px;height:100px}.sticker-jason{left:5px}.sticker-lucia{right:5px}.home .sb-stage{width:calc(100% - 32px)}}

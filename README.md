@@ -1,19 +1,67 @@
-# GTAXIOM — Grand Theft Memes
+<div align="center">
 
-A GTA meme discovery site with a Vice City sunset, neon pink interface, live search, GIFs and a private browser collection.
+# GTAGLE
 
-Run locally with `node tools/serve.cjs`, then open http://127.0.0.1:8000. No build or server dependencies are required.
+### GTA memes. One search away.
 
-Navigation uses clean History API URLs (`/search`, `/settings`, `/tags`, `/folders`). The local server serves `index.html` for these routes, while missing assets return 404. Other hosting must provide the same SPA fallback for direct links and refreshes. Old `#/…` bookmarks are converted automatically.
+Discover memes across the GTA universe, explore multiple sources, and keep your favorites in one place.
 
-Vercel hosting is configured in `vercel.json`: application routes rewrite internally to `/index.html`, preserving the URL and query parameters. Static assets and unknown paths retain normal file/404 handling. Deploy from the repository root so Vercel reads this configuration.
+[Explore the site](https://gtagle.online) · [Run locally](#run-locally) · [How it works](#how-it-works)
 
-Use the top-right **Terminal / Classic** switch to choose the compact table/Pulse layout or restore the original Vice City hero and card grid. The choice persists in `vicefeed.layout`; saved memes and search settings are shared. Direct layout links also work: `/?layout=classic` and `/?layout=terminal`. Classic styles remain in `css/vicefeed.css`; the alternate layout is isolated in `css/terminal.css` and `js/terminal.js`.
+</div>
 
-Discovery searches Lemmy, Reddit, Bluesky and Mastodon for GTA VI, V, IV, Online, San Andreas, Vice City, characters and meme phrases. Topic chips and query aliases live in `js/gta.js`. Tenor, Giphy and Imgur work with optional user API keys. A shared metadata/community filter rejects unrelated content across result streams and the local library. This is metadata filtering, not image recognition. Four original local GTA meme cards remain available when public APIs are unavailable.
+![GTAGLE homepage](docs/screenshots/gtagle-homepage.png)
 
-GTAXIOM uses separate browser storage (`vicefeed`), preserving earlier libraries. An unofficial fan project, unaffiliated with Rockstar Games.
+## Your next GTA meme starts here
 
-![GTAXIOM](assets/gta/city.svg)
+GTAGLE brings a familiar search experience to Grand Theft Auto meme culture. Find San Andreas classics, explore Vice City reactions, or discover content around GTA VI without repeating the same search across every platform.
 
-Third-party meme source URLs are retained in data/memes.json. Keep LICENSE and NOTICE with redistributions.
+- **Search across sources.** Reddit, Lemmy, Bluesky, Mastodon and Imgflip in one interface.
+- **Explore GTA.** Games, characters, locations and memorable phrases, with quick topic shortcuts.
+- **Browse your way.** All, Images, GIFs, Templates and My memes, plus source filters and sorting.
+- **Save your favorites.** A personal browser collection with organization and export tools.
+- **Use any screen.** Responsive search and image previews for desktop and mobile.
+
+## Run locally
+
+Requires Node.js. No dependency installation or build step.
+
+```sh
+node tools/serve.cjs
+```
+
+Open **http://127.0.0.1:8000**. For another port, run `node tools/serve.cjs 8080`.
+
+## How it works
+
+A static HTML, CSS and JavaScript application. Source requests run in the browser. GTA aliases and shared metadata/community filters focus the results; this is text-based filtering, not image recognition.
+
+Live results depend on third-party API availability and browser restrictions. Tenor, Giphy and Imgur require optional user API keys in Settings. Local GTA meme cards remain available while external services load or are unavailable.
+
+Collections and settings use IndexedDB and localStorage. Existing storage keys are preserved to retain saved collections. There is no GTAGLE account server. Queries are sent to selected sources; optional suggestions use Google's suggestion endpoint.
+
+## Deploy
+
+Deploy the repository root as a static site. `vercel.json` handles direct visits and refreshes for `/search`, `/settings`, `/tags`, `/folders` and `/upload`. Other hosts need equivalent SPA route handling. Missing assets should return 404.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `index.html` | Entry point and metadata |
+| `js/app.js` | Routing, search UI, previews and collection actions |
+| `js/gta.js` | GTA topics, aliases and subject filtering |
+| `js/sources.js` | Public-source adapters and result sessions |
+| `js/store.js` | Browser storage and collections |
+| `css/google.css` | Original Memegle search layout |
+| `css/google-gta.css` | Branding and responsive adjustments |
+| `assets/gta/` | Artwork, icons and local meme assets |
+| `tools/serve.cjs` | Dependency-free local server |
+
+## Credits and license
+
+Built on [Memegle](https://github.com/justbuildsstuff/Memegle), with GTA-focused discovery and custom artwork.
+
+See [LICENSE](LICENSE) and [NOTICE](NOTICE); retain both when redistributing. Third-party content belongs to its respective owners. Original source links are preserved with results and in `data/memes.json`.
+
+GTAGLE is an independent fan project, unaffiliated with Google, Rockstar Games or the source platforms.

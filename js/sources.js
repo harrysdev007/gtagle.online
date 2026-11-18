@@ -1,4 +1,4 @@
-import { isGta, gtaQuery } from './gta.js?v=54';
+import { isGta, gtaQuery } from './gta.js?v=63';
 // Memegle live sources: everything here runs in the browser against public APIs (no server).
 // Each adapter returns normalized items:
 // { id, source, kind: 'image'|'gif'|'template', title, body, image, thumb, width, height, url, site, path,
@@ -6,7 +6,7 @@ import { isGta, gtaQuery } from './gta.js?v=54';
 import { tokenize, stem } from './search.js?v=50';
 
 export const SOURCE_INFO = {
-  original: { label: 'Local originals', site: 'GTAXIOM', hidden: true, needsKey: false },
+  original: { label: 'Local originals', site: 'GTAGLE', hidden: true, needsKey: false },
   lemmy: { label: 'Lemmy', site: 'lemmy.world', needsKey: false, desc: 'Meme communities across the Fediverse (memes, dankmemes, programmer humor, comics...)' },
   reddit: { label: 'Reddit', site: 'reddit.com', needsKey: false, desc: 'GTA, GTA6, GTA Online, San Andreas and Vice City communities via meme-api.com' },
   imgflip: { label: 'Imgflip templates', site: 'imgflip.com', needsKey: false, desc: 'The 100 most popular meme templates right now' },

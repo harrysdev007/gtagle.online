@@ -1,12 +1,12 @@
-import { isGta, gtaQuery, gtaSearchTerms, GTA_SEEDS, GTA_TOPICS } from './gta.js?v=54';
-import { terminalHeader, terminalFeed } from './terminal.js?v=58';
-const terminalLayout = () => document.documentElement.dataset.layout === 'terminal';
-// GTAXIOM a meme discovery terminal across public sources,
+import { isGta, gtaQuery, gtaSearchTerms, GTA_SEEDS, GTA_TOPICS } from './gta.js?v=63';
+
+
+// GTAGLE a meme discovery terminal across public sources,
 // plus a private "My memes" library in the browser. Vanilla JS SPA with History API routing.
 import {
   loadLibrary, loadSettings, saveSettings, loadHistory, pushHistory, clearHistory, saveMemeFields, resetOverride,
   deleteMeme, addUpload, getEmbedding, putEmbedding, exportLibrary, importLibrary, clearLibrary, libraryStats, DEFAULT_SETTINGS, idb,
-} from './store.js?v=50';
+} from './store.js?v=61';
 import { buildIndex, search, suggestions as librarySuggestions, highlight, rankByVector, embeddingText, hashText, tokenize } from './search.js?v=50';
 import { describe, embed, getCaptioner, CAPTION_MODELS, hasWebGPU, isModelCached } from './ai.js?v=50';
 import {
@@ -14,7 +14,7 @@ import {
   searchBluesky, trendingBluesky,
   searchImgflip, fetchImgflip, searchTenor, tenorAutocomplete, searchGiphy, searchImgur, knowledgePanel,
   memeSuggestions, spellCorrection, createSession, favicon, relevance, rank,
-} from './sources.js?v=55';
+} from './sources.js?v=63';
 
 // ------------------------------------------------------------------ icons
 const I = {
@@ -48,7 +48,7 @@ const I = {
 const sm = (svg, px = 16) => svg.replace('<svg', `<svg style="width:${px}px;height:${px}px;vertical-align:-3px;fill:currentColor"`);
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const logoHtml = () => '<a class="logo" href="/" aria-label="GTAXIOM home"><img class="mx-mark" src="assets/gta/gtaxiom-logo-64.png" alt="" width="40" height="40"><span>GTA<span class="brand-light">XIOM</span></span></a>';
+const logoHtml = (cls = '') => `<a class="logo ${cls}" href="/" aria-label="GTAGLE home">${'GTAGLE'.split('').map((c,i)=>`<span style="--i:${i}">${c}</span>`).join('')}</a>`;
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const fmtNum = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n || 0));
@@ -171,7 +171,7 @@ function searchBox({ value = '', autofocus = false, compact = false } = {}) {
       <button type="button" class="sb-btn sb-clear ${value ? '' : 'hidden'}" title="Clear" aria-label="Clear">${I.clear}</button>
       <span class="sb-divider ${value ? '' : 'hidden'}"></span>
       <button type="button" class="sb-btn sb-mic" title="Search by voice" aria-label="Search by voice">${I.mic}</button>
-      <button type="button" class="sb-btn sb-lens" title="Search by image (GTAXIOM Lens)" aria-label="Search by image">${I.lens}</button>
+      <button type="button" class="sb-btn sb-lens" title="Search by image (GTAGLE Lens)" aria-label="Search by image">${I.lens}</button>
       ${compact ? `<button type="submit" class="sb-btn sb-go" title="Search" aria-label="Search"><span class="sb-icon" style="fill:var(--blue)">${I.search}</span></button>` : ''}
     </div>
     <div class="suggest" role="listbox"></div>`;
@@ -259,45 +259,63 @@ function voiceSearch(input, submit) {
 }
 
 function topRight() {
-  return `<div class="right"><a class="gbtn primary" href="/search?tab=library">${sm(I.upload)} My collection</a><button class="icon-btn" data-action="settings" title="Settings">${I.settings}</button></div>`;
+  return `<div class="right">
+      <a class="link" href="/search?tab=images" title="Trending memes">Images</a>
+      <a class="link" href="/search?tab=library">My memes</a>
+      <button class="icon-btn" data-action="settings" title="Settings" aria-label="Settings">${I.settings}</button>
+      <button class="icon-btn" data-action="apps" title="GTAGLE apps" aria-label="GTAGLE apps">${I.apps}</button>
+      <button class="avatar" data-action="settings" title="Local library (this browser)">M</button>
+    </div>`;
 }
-function appsMenu() { return ''; }
+function appsMenu() {
+  return `<div class="apps-menu hidden" id="apps-menu">
+      <a href="/search?tab=images">${I.image}<span>Images</span></a>
+      <a href="/search?tab=gifs">${I.gif}<span>GIFs</span></a>
+      <a href="/search?tab=templates">${I.template}<span>Templates</span></a>
+      <a href="/search?tab=library">${I.save}<span>My memes</span></a>
+      <a href="/upload">${I.upload}<span>Upload</span></a>
+      <a href="/settings">${I.settings}<span>Settings</span></a>
+    </div>`;
+}
 function pageHeader() {
-  return `<header class="results-top"><div class="page-heading"><div><span class="eyebrow">YOUR WORKSPACE</span><h1>Collection tools</h1></div><div id="sb"></div></div></header>`;
-}function terminalChrome() {
-  const route = state.route.name; const p = qp();
-  $$('.layout-switch button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.layout === document.documentElement.dataset.layout)));
-  if (terminalLayout()) {
-    $('#terminal-chrome').innerHTML = terminalHeader({p, route, logo:logoHtml(), topics:GTA_TOPICS, esc, searchUrl, count:state.lib.length, socialIcon:sm(I.x,14)});
-    $('#terminal-footer').innerHTML = `<span class="dex-connection"><img src="assets/gta/gtaxiom-logo-64.png" alt="" width="20" height="20"> GTAXIOM</span><a href="/">Discover</a><a href="/search?view=pulse">Pulse</a><a href="/search?tab=library">Collection <b>${state.lib.length}</b></a><a href="/settings">Sources & settings</a><span class="dex-footer-end">GTA community feed / Unofficial fan project</span>`;
-    return;
-  }
-  const nav = [
-    ['Screener', '/', I.trend, route === 'home' || route === 'search' && p.tab === 'all' && !p.src.length],
-    ['My collection', '/search?tab=library', I.save, p.tab === 'library' && route === 'search'],
-    ['Image explorer', '/search?tab=images', I.image, p.tab === 'images' && route === 'search'],
-    ['GTA GIFs', '/search?tab=gifs', I.gif, p.tab === 'gifs' && route === 'search'],
-    ['New memes', '/search?sort=newest', I.history, route === 'search' && p.sort === 'newest'],
-    ['Templates', '/search?tab=templates', I.template, p.tab === 'templates' && route === 'search'],
-    ['Settings', '/settings', I.settings, route === 'settings'],
-  ];
-  $('#terminal-chrome').innerHTML = `<header class="dex-mobile-header"><button class="icon-btn" data-action="toggle-menu" title="Open navigation" aria-label="Open navigation">${I.apps}</button>${logoHtml()}<a class="dex-header-social" href="https://x.com/gtaxiom_sol" target="_blank" rel="noopener noreferrer">${sm(I.x,14)} @gtaxiom_sol</a></header>
-    <button class="dex-backdrop" data-action="toggle-menu" aria-label="Close navigation"></button>
-    <aside class="dex-sidebar" aria-label="Main navigation">
-      <div class="dex-brand">${logoHtml()}</div>
-      <button class="dex-search" data-action="focus-search">${sm(I.search,17)}<span>Search GTA memes</span><kbd>/</kbd></button>
-      <a class="dex-upload" href="/search?tab=library">${sm(I.upload,17)} Save your favorites <span>+</span></a>
-      <nav>${nav.map(([label,url,icon,active]) => `<a class="dex-nav-link ${active ? 'active' : ''}" href="${url}" ${active ? 'aria-current="page"' : ''}>${sm(icon,18)}${label}</a>`).join('')}</nav>
-      <div class="dex-nav-divider"></div><span class="dex-section-label">SOURCES</span>
-      <nav>${['lemmy','reddit','bluesky','mastodon','imgflip','tenor','giphy','imgur'].map((key,i)=>`<a class="dex-nav-link ${p.src.includes(key) ? 'active' : ''}" href="${searchUrl({tab:'all',src:key,q:p.q})}"><span class="dex-source-icon source-icon-${key}"><img src="assets/sources/${key}.png" alt="" width="22" height="22"></span>${esc(key === 'imgflip' ? 'Imgflip' : SOURCE_INFO[key].label)}${!enabled(key) ? '<span class="dex-key-label">OFF</span>' : ''}</a>`).join('')}</nav>
-      <div class="dex-nav-divider"></div><nav><a class="dex-nav-link" href="/tags">${sm(I.tag,17)} Tags</a><a class="dex-nav-link" href="/folders">${sm(I.folder,17)} Folders</a></nav>
-      <div class="dex-sidebar-bottom"><a class="x-social" href="https://x.com/gtaxiom_sol" target="_blank" rel="noopener noreferrer">${sm(I.x,14)} @gtaxiom_sol</a><small>Unofficial GTA meme club.</small></div>
-    </aside>
-    <div class="dex-metas"><a class="dex-header-social" href="https://x.com/gtaxiom_sol" target="_blank" rel="noopener noreferrer">${sm(I.x,14)} @gtaxiom_sol</a><a class="metas-title" href="/">${sm(I.apps,14)} The map</a>${[['GTA VI','GTA 6'],['GTA Online','GTA Online'],['San Andreas','San Andreas'],['Vice City','Vice City'],['Wasted','wasted']].map(([label,q]) => `<a href="${searchUrl({q,tab:'images'})}">${label}<span class="meta-arrow">↗</span></a>`).join('')}</div>`;
-  $('#terminal-footer').innerHTML = `<span class="dex-connection"><img src="assets/gta/gtaxiom-logo-64.png" alt="" width="20" height="20"> GTAXIOM</span><a href="/search?tab=library">${state.lib.length} collected</a><a href="/settings?section=sources">Source settings</a><a href="/search?tab=templates">Meme templates</a><a href="https://x.com/gtaxiom_sol" target="_blank" rel="noopener noreferrer">${sm(I.x,12)} @gtaxiom_sol</a><span class="dex-footer-end">Welcome to the chaos.</span>`;
+  return `<header class="results-top"><div class="results-bar">${logoHtml()}<div id="sb"></div>${topRight()}</div>${appsMenu()}</header>`;
 }
 
-async function renderHome(app) { return renderResults(app, () => state.route.name !== 'home'); }
+// ------------------------------------------------------------------ home
+function renderHome(app) {
+  app.innerHTML = `
+    <header class="home-top">${topRight()}${appsMenu()}</header>
+    <main class="home">
+      <div class="logo-wrap"><img class="search-mascot" src="assets/gta/search-mascot-google.png" alt="Jason and Lucia with a multicolor G" width="150" height="150">${logoHtml('wave')}</div>
+      <div id="sb"></div>
+      <nav class="google-topics" aria-label="GTA topics">${GTA_TOPICS.slice(0,8).map(q=>`<a href="${searchUrl({q,tab:'images'})}">${esc(q)}</a>`).join('')}</nav><div class="buttons">
+        <button class="gbtn" data-action="home-search">GTAGLE Search</button>
+        <button class="gbtn" data-action="lucky">I'm Feeling Memey</button>
+      </div>
+      <p class="offered">Only GTA memes, live from Lemmy, Bluesky, Mastodon, Reddit, Imgflip${state.settings.tenorKey ? ', Tenor' : ''}${state.settings.giphyKey ? ', Giphy' : ''} and <a href="/search?tab=library">your own collection</a>.</p>
+    </main>
+    <footer class="home-footer">
+      <div class="country">GTA memes. Across the internet.</div>
+      <div class="links">
+        <div><a href="/settings?section=about">About</a><a href="/settings?section=how">How Search works</a><a href="https://github.com/harrysdev007/gtagle.online" target="_blank" rel="noopener">Source</a></div>
+        <div><a href="/settings?section=privacy">Privacy</a><a href="/settings?section=sources">Sources</a><a href="/settings">Settings</a></div>
+      </div>
+    </footer>`;
+  const sb = searchBox({ autofocus: window.innerWidth > 640 });
+  const stage = document.createElement('div');
+  stage.className = 'sb-stage';
+  const stickers = document.createElement('div');
+  stickers.className = 'search-stickers';
+  stickers.setAttribute('aria-hidden','true');
+  stickers.innerHTML = '<span class="search-sticker sticker-jason"><img src="assets/gta/search-mascot-google.png" alt=""></span><span class="search-sticker sticker-lucia"><img src="assets/gta/search-mascot-google.png" alt=""></span>';
+  stage.appendChild(stickers);
+  stage.appendChild(sb);
+  $('#sb', app).replaceWith(stage);
+  $('[data-action=home-search]', app).addEventListener('click', () => sb.requestSubmit());
+
+}
+
+function terminalChrome() { $('#terminal-chrome').innerHTML=''; $('#terminal-footer').innerHTML=''; }
 
 // ------------------------------------------------------------------ sessions (live search)
 function enabled(src) {
@@ -389,16 +407,15 @@ async function renderResults(app, isStale) {
   const p = qp();
   const session = sessionFor(p);
   if (!p.sel) state.selected.clear();
-  const tabs = [['all', 'Discover', I.trend], ['images', 'Images', I.image], ['gifs', 'GIFs', I.gif], ['templates', 'Templates', I.template], ['library', 'My library', I.save]];
+  const tabs = [['all', 'All', I.search], ['images', 'Images', I.image], ['gifs', 'GIFs', I.gif], ['templates', 'Templates', I.template], ['library', 'My memes', I.save]];
   app.innerHTML = `
     <header class="results-top">
-      <section class="doge-hero"><div class="doge-hero-copy"><span class="doge-kicker">Vice City. Unlimited bad decisions.</span><h2>GRAND THEFT<br>MEMES.</h2><p>Five stars. Zero chill.<br>The whole GTA universe. One endless feed.</p><a class="doge-cta" href="/search?tab=images">Enter the feed <span>↗</span></a><div class="doge-hero-note">An unofficial community. A very official obsession.</div></div><div class="vice-emblem" aria-hidden="true"><span class="vice-stars">★★★★★</span><strong>VI</strong><span class="vice-script">Vice City frequency</span><span class="vice-frequency">103.6 FM / MEME RADIO</span></div></section><nav class="gta-topics" aria-label="GTA topics">${GTA_TOPICS.map(tag=>`<a href="${searchUrl({q:tag,tab:'images'})}">${esc(tag)}</a>`).join('')}</nav><div class="page-heading"><div><span class="eyebrow">Straight from the streets</span><h1>${p.tab === 'library' ? 'My library' : p.q ? 'Search results' : terminalLayout() && state.route.params.view === 'pulse' ? 'Pulse' : 'The GTA feed'} <span class="live-label"><i></i> ${p.tab === 'library' ? 'LOCAL LIBRARY' : 'GTA ONLY'}</span></h1><p>${p.q ? `Results for “${esc(p.q)}”` : 'GTA VI, Online, San Andreas and every wrong turn in between.'}</p></div><div class="workspace-actions"><a class="quiet-link" href="/search?tab=library">${sm(I.save)} My library</a><a class="gbtn primary" href="/search?tab=library">${sm(I.upload)} My collection</a></div></div>
-      <div class="command-row"><span class="command-prefix">${sm(I.search,18)}</span><div id="sb"></div><span class="command-hint"><kbd>/</kbd> Search</span></div>
+      <div class="results-bar">${logoHtml()}<div id="sb"></div>${topRight()}</div>
       <nav class="tabs">
         ${tabs.map(([k, label, icon]) => `<a class="tab ${p.tab === k ? 'active' : ''}" href="${searchUrl({ ...state.route.params, tab: k, id: undefined, sel: undefined })}">${icon}${label}</a>`).join('')}
-        <button class="tab right ${p.tools ? 'active' : ''}" data-action="tools">${sm(I.settings,14)} Filters</button>
+        <button class="tab right ${p.tools ? 'active' : ''}" data-action="tools">Tools</button>
       </nav>
-      <div class="tools-row ${p.tools ? 'expanded' : ''}">
+      <div class="tools-row ${p.tools || p.src.length || !p.safe ? '' : 'hidden'}">
         <select class="gsel" data-param="sort" title="Sort">
           <option value="relevance" ${p.sort === 'relevance' ? 'selected' : ''}>Relevance</option>
           <option value="newest" ${p.sort === 'newest' ? 'selected' : ''}>Newest</option>
@@ -406,7 +423,7 @@ async function renderResults(app, isStale) {
         </select>
         <a class="chip ${p.safe ? 'on' : ''}" href="${searchUrl({ ...state.route.params, safe: p.safe ? '0' : '1' })}" title="Hide NSFW results">${sm(I.shield)} SafeSearch ${p.safe ? 'on' : 'off'}</a>
         ${Object.keys(SOURCE_INFO).filter((k) => !SOURCE_INFO[k].hidden && enabled(k)).map((src) => `<a class="chip ${p.src.includes(src) ? 'on' : ''}" href="${searchUrl({ ...state.route.params, src: toggleList(p.src, src), id: undefined })}"><img src="${favicon(SOURCE_INFO[src].site)}" alt="" style="width:14px;height:14px;border-radius:3px">${esc(SOURCE_INFO[src].label)}</a>`).join('')}
-        ${p.tab === 'library' ? `<button class="chip ${p.sel ? 'on' : ''}" data-action="toggle-select">${sm(I.select)} Select</button><a class="chip" href="/search?tab=library">${sm(I.upload)} Upload</a>` : ''}
+        ${p.tab === 'library' ? `<button class="chip ${p.sel ? 'on' : ''}" data-action="toggle-select">${sm(I.select)} Select</button><a class="chip" href="/upload">${sm(I.upload)} Upload</a>` : ''}
         ${p.src.length ? `<a class="chip" href="${searchUrl({ ...state.route.params, src: undefined })}">${sm(I.clear)} Clear filters</a>` : ''}
       </div>
       ${appsMenu()}
@@ -447,8 +464,7 @@ function renderBody(root, session, p) {
   if (p.q && session.done && items.length < 3) parts.push(`<div id="correction"></div>`);
   if (p.tab === 'library' && p.sel) parts.push(bulkBar());
 
-  if (terminalLayout() && ['all','library'].includes(p.tab)) parts.push(terminalFeed({items:shown,p,session,esc,searchUrl,fmtNum,ago,pulse:state.route.params.view === 'pulse'}));
-  else if (p.tab === 'all') parts.push(renderAll(session, p, items, shown));
+  if (p.tab === 'all') parts.push(renderAll(session, p, items, shown));
   else if (!items.length) parts.push(session.done ? emptyState(p, session) : skeletonGrid());
   else parts.push(imageGrid(shown, p));
 
@@ -473,7 +489,7 @@ function emptyState(p, session) {
   const noSources = !Object.keys(SOURCE_INFO).some(enabled);
   const st = session ? Object.entries(session.status).filter(([k]) => !k.includes(':')) : [];
   const allFailed = st.length > 0 && st.every(([, v]) => v === 'error' || v === 'skipped');
-  if (allFailed) return `<div class="empty">GTAXIOM could not reach any source.
+  if (allFailed) return `<div class="empty">GTAGLE could not reach any source.
     <div style="margin-top:12px">The browser blocked or failed every request to the meme sources (lemmy.world, meme-api.com, api.imgflip.com, mastodon.social).
     This happens with strict content blockers, privacy modes or network filters. Allow those hosts or try another browser, then
     <a href="javascript:location.reload()">reload</a>.</div></div>`;
@@ -485,7 +501,7 @@ function emptyState(p, session) {
       ${p.tab === 'gifs' ? '<li>No GTA GIFs match this search. Try GTA VI, CJ, Wasted or GTA Online.</li>' : ''}
       ${p.tab === 'library' ? '<li><a href="/search?tab=library">My collections</a> or save results from the web with the Save button.</li>' : '<li>Try different or more general keywords, or the name of the meme template.</li>'}
       ${p.tab !== 'all' ? `<li>Look at <a href="${searchUrl({ ...state.route.params, tab: 'all' })}">all result types</a>.</li>` : ''}
-      <li>GTAXIOM only shows GTA content. Try Vice City, Trevor, Big Smoke or San Andreas.</li>
+      <li>GTAGLE only shows GTA content. Try Vice City, Trevor, Big Smoke or San Andreas.</li>
     </ul></div>`;
 }
 
@@ -503,19 +519,46 @@ function moreSourcesLinks(q) {
 
 // ---------- Discover: cross-platform terminal feed
 function renderAll(session, p, items, shown) {
-  const localFallback = !items.length && !p.q;
-  const rows = localFallback ? state.lib.slice(0, 8).map(libItem) : shown;
-  if (!rows.length) return session.done ? emptyState(p, session) : skeletonGrid();
-  const sources = new Set(items.map((it) => it.source)).size;
-  const social = items.reduce((n, it) => n + (it.source === 'imgflip' || it.source === 'library' ? 0 : Number(it.score) || 0), 0);
-  return `<div class="dex-market-stats"><div><span>GTA MEMES IN THIS FEED:</span><strong>${items.length.toLocaleString()}</strong><small>${sources} sources</small></div><div><span>GTA CONTENT. ONLY:</span><strong>100% GTA</strong><small>${state.lib.length} collected</small></div></div>
-    <div class="dex-feed-toolbar"><div><a href="${searchUrl({...state.route.params,sort:'relevance'})}" class="dex-filter ${p.sort === 'relevance' ? 'selected' : ''}">${sm(I.trend,13)} Trending</a><a href="${searchUrl({...state.route.params,sort:'top'})}" class="dex-filter ${p.sort === 'top' ? 'selected' : ''}">${sm(I.arrowUp,13)} Top score</a><a href="${searchUrl({...state.route.params,sort:'newest'})}" class="dex-filter ${p.sort === 'newest' ? 'selected' : ''}">${sm(I.history,13)} New memes</a><a class="dex-filter" href="/search?tab=library">${sm(I.save,13)} Collection</a></div><span class="dex-feed-state"><i></i>${localFallback ? 'LOCAL PREVIEW' : session.done ? 'FEED LOADED' : 'UPDATING'}</span></div>
-    ${imageGrid(rows, p)}
-    ${localFallback ? '<p class="fallback-note">Showing your bundled collection while live sources load.</p>' : ''}
-    ${session.relatedValue?.length ? `<div class="related-searches"><span>EXPLORE NEXT</span>${session.relatedValue.slice(0,6).map(q => `<a href="${searchUrl({q})}">${esc(q)} ↗</a>`).join('')}</div>` : ''}
-    ${session.panelValue ? `<div class="meme-context"><span class="eyebrow">MEME INTELLIGENCE · WIKIPEDIA</span><h3>${esc(session.panelValue.title)}</h3><p>${esc(session.panelValue.extract)}</p><a href="${esc(session.panelValue.url)}" target="_blank" rel="noopener">Read more ↗</a></div>` : ''}`;
+  if (!items.length && !session.done) return `<div class="all-grid"><div class="all-main">${skeletonList()}</div></div>`;
+  if (!items.length) return emptyState(p, session);
+  const images = items.filter((i) => i.kind !== 'template').slice(0, 8);
+  const templates = items.filter((i) => i.kind === 'template').slice(0, 6);
+  const list = shown.filter((i) => i.kind !== 'template');
+  const tokens = tokenize(p.q);
+  const panel = session.panelValue;
+  const related = session.relatedValue || [];
+  return `<div class="all-grid">
+    <div class="all-main">
+      ${images.length ? `<div class="g strip-block">
+        <div class="g-head"><span class="site">${sm(I.image, 18)} Images for <b>${esc(p.q || 'trending memes')}</b></span></div>
+        <div class="strip">${images.map((it) => `<img src="${esc(it.thumb)}" alt="${esc(it.title)}" title="${esc(it.title)}" loading="lazy" style="--ar:${aspect(it)}" onerror="this.remove()" data-action="open" data-id="${esc(it.id)}">`).join('')}</div>
+        <a class="strip-more" href="${searchUrl({ ...state.route.params, tab: 'images' })}">View all ${items.filter((i) => i.kind !== 'template').length} images</a>
+      </div>` : ''}
+      ${templates.length ? `<div class="g strip-block">
+        <div class="g-head"><span class="site">${sm(I.template, 18)} Meme templates</span></div>
+        <div class="tpl-row">${templates.map((t) => `<a class="tpl" href="${esc(t.url)}" target="_blank" rel="noopener" title="${esc(t.title)} on Imgflip"><img src="${esc(t.thumb)}" alt="" loading="lazy"><span>${esc(t.title)}</span></a>`).join('')}</div>
+      </div>` : ''}
+      ${list.map((it) => webResult(it, tokens)).join('')}
+      ${related.length ? `<div class="g"><h4 class="pasf">People also search for</h4><div class="pasf-grid">${related.slice(0, 8).map((r) => `<a class="chip" href="${searchUrl({ q: r })}">${sm(I.search)} ${esc(r)}</a>`).join('')}</div></div>` : ''}
+      ${p.q ? `<div class="g more-sources">More sources: ${moreSourcesLinks(p.q)}</div>` : ''}
+    </div>
+    <aside class="kp">
+      ${panel ? `<div class="kp-card">
+        ${panel.thumb ? `<img class="kp-img" src="${esc(panel.thumb)}" alt="">` : ''}
+        <h3>${esc(panel.title)}</h3>
+        <div class="kp-sub">Meme · Wikipedia</div>
+        <p>${esc(panel.extract.slice(0, 420))}${panel.extract.length > 420 ? '...' : ''} <a href="${esc(panel.url)}" target="_blank" rel="noopener">Wikipedia</a></p>
+      </div>` : ''}
+      ${p.q ? `<div class="kp-card kp-links">
+        <h3>About this meme</h3>
+        <a href="https://knowyourmeme.com/search?q=${encodeURIComponent(p.q)}" target="_blank" rel="noopener"><img src="${favicon('knowyourmeme.com')}" alt="">Know Your Meme entry</a>
+        <a href="https://imgflip.com/memesearch?q=${encodeURIComponent(p.q)}" target="_blank" rel="noopener"><img src="${favicon('imgflip.com')}" alt="">Imgflip templates</a>
+        <a href="https://www.reddit.com/r/memes/search/?q=${encodeURIComponent(p.q)}&restrict_sr=1" target="_blank" rel="noopener"><img src="${favicon('reddit.com')}" alt="">r/memes on Reddit</a>
+        <a href="https://tenor.com/search/${encodeURIComponent(p.q)}-gifs" target="_blank" rel="noopener"><img src="${favicon('tenor.com')}" alt="">Tenor GIFs</a>
+      </div>` : ''}
+    </aside>
+  </div>`;
 }
-
 function skeletonList() {
   return Array.from({ length: 5 }, () => `<div class="g skeleton"><div class="g-head"><span class="fav bar"></span><span class="bar" style="width:160px"></span></div><div class="bar" style="width:60%;height:20px;margin:8px 0"></div><div class="bar" style="width:100%"></div><div class="bar" style="width:80%"></div></div>`).join('');
 }
@@ -530,7 +573,7 @@ function webResult(it, tokens) {
   const snippet = it.body ? highlight(it.body, tokens) : `${it.kind === 'gif' ? 'GIF' : 'Meme'} posted in ${esc(it.path)} on ${esc(it.site)}.`;
   return `<div class="g" data-id="${esc(it.id)}">
     <div class="g-head">
-      <img class="fav" src="${it.source === 'original' ? 'assets/gta/gtaxiom-logo-64.png' : it.source === 'library' ? esc(it.thumb) : favicon(it.site)}" alt="">
+      <img class="fav" src="${it.source === 'original' ? 'assets/gta/gtagle-google-icon-64.png' : it.source === 'library' ? esc(it.thumb) : favicon(it.site)}" alt="">
       <div>
         <div class="site">${esc(it.site)}</div>
         <div class="url">${esc(it.site)} <b>›</b> ${esc(it.path)}</div>
@@ -600,7 +643,7 @@ function viewerPanel(it) {
   return `<div class="detail" data-id="${esc(it.id)}">
     <div class="detail-head">
       <button class="icon-btn" data-action="close-panel" title="Close" aria-label="Close">${I.close}</button>
-      <img src="${it.source === 'original' ? 'assets/gta/gtaxiom-logo-64.png' : favicon(it.site)}" alt="" style="width:20px;height:20px;border-radius:4px">
+      <img src="${it.source === 'original' ? 'assets/gta/gtagle-google-icon-64.png' : favicon(it.site)}" alt="" style="width:20px;height:20px;border-radius:4px">
       <span class="title" title="${esc(it.title)}">${esc(it.site)} › ${esc(it.path)}</span>
       <a class="icon-btn" href="${esc(it.image)}" target="_blank" rel="noopener" title="Open image in new tab">${I.open}</a>
     </div>
@@ -808,7 +851,7 @@ function renderUpload(app) {
 }
 
 async function handleFiles(files) {
-  toast('GTAXIOM accepts curated GTA content only. Save a GTA from the feed.'); return;
+  toast('GTAGLE accepts curated GTA content only. Save a GTA from the feed.'); return;
 
   files = files.filter((f) => /^image\/(jpeg|png|webp|gif)$/.test(f.type));
   if (!files.length) { toast('No supported images (JPG, PNG, WEBP, GIF)'); return; }
@@ -971,13 +1014,13 @@ async function renderSettings(app) {
 
       <h2 id="about">About</h2>
       <div class="card" style="line-height:1.6">
-        <p style="margin:0 0 8px"><b>GTAXIOM</b> is your meme discovery screener: a meme-only search engine that runs entirely in your browser and is hosted as a static site.
+        <p style="margin:0 0 8px"><b>GTAGLE</b> is your meme discovery screener: a meme-only search engine that runs entirely in your browser and is hosted as a static site.
         Use of third-party software and bundled media is described in the project license notices.</p>
         <p id="how" style="margin:0 0 8px"><b>How Search works.</b> Your query goes in parallel to the meme communities on Lemmy (searched through lemmy.world and the communities' own instances),
         to hot posts of meme subreddits via meme-api.com, to the Imgflip template list and, with your own keys, to Tenor, Giphy and Imgur. Results are merged, de-duplicated and ranked
         by title match, upvotes and freshness. Suggestions and "Did you mean" come live from Google's suggest service. The knowledge panel is the matching Wikipedia article.
         My memes are searched locally with BM25 or sentence embeddings.</p>
-        <p id="privacy" style="margin:0"><b>Privacy.</b> No analytics, no accounts, no GTAXIOM server. Queries are sent to the sources above (and to Google's suggest endpoint if enabled).
+        <p id="privacy" style="margin:0"><b>Privacy.</b> No analytics, no accounts, no GTAGLE server. Queries are sent to the sources above (and to Google's suggest endpoint if enabled).
         Uploads stay in this browser. See the project documentation for source and license notices.</p>
       </div>
     </main>`;
@@ -1005,15 +1048,6 @@ async function onAction(action, el, e) {
   const m = it?.source === 'library' ? it.meme : (id && id.startsWith('library:') ? memeById(id.slice(8)) : null);
   const statusEl = $('#d-status');
   switch (action) {
-    case 'layout': {
-      const layout = el.dataset.layout === 'classic' ? 'classic' : 'terminal';
-      document.documentElement.dataset.layout = layout;
-      try { localStorage.setItem('vicefeed.layout', layout); } catch {}
-      const url = new URL(location.href); url.searchParams.delete('layout'); history.replaceState(null, '', url);
-      document.body.classList.remove('dex-menu-open');
-      await render(true);
-      break;
-    }
     case 'settings': go('settings'); break;
     case 'toggle-menu': document.body.classList.toggle('dex-menu-open'); break;
     case 'focus-search': document.body.classList.remove('dex-menu-open'); $('.searchbox input')?.focus(); break;
@@ -1220,7 +1254,7 @@ async function render(force = false) {
   terminalChrome();
   if (state.route.name !== 'search') state.limit = 0;
   const p = state.route.params;
-  document.title = 'GTAXIOM';
+  document.title = 'GTAGLE';
   const prevScroll = window.scrollY;
   // only the open panel changed: patch instead of re-rendering the whole page
   if (!force && state.route.name === 'search' && prev.name === 'search' && $('#results-body') && sameExcept(prev.params, p, ['id'])) {

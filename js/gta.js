@@ -20,4 +20,4 @@ export const GTA_SEEDS = [
  {id:'gta-local-2',title:'CJ: Ah shit, here we go again',image:'assets/gta/meme-2.svg',tags:['CJ','San Andreas','Grove Street']},
  {id:'gta-local-3',title:'GTA Online: one peaceful drive',image:'assets/gta/meme-3.svg',tags:['GTA Online','GTA V','Wasted']},
  {id:'gta-local-4',title:'Big Smoke: I will have two number 9s',image:'assets/gta/meme-4.svg',tags:['Big Smoke','San Andreas']}
-].map(item=>({...item,source:'original',kind:'image',thumb:item.image,body:item.title,text:item.title,url:item.image,site:'GTAXIOM',path:'Local originals',created:0,score:0,nsfw:false}));
+].map(item=>({...item,source:'original',kind:'image',thumb:item.image,body:item.title,text:item.title,url:item.image,site:'GTAGLE',path:'Local originals',created:0,score:0,nsfw:false}));

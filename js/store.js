@@ -5,7 +5,7 @@ const SETTINGS_KEY = 'vicefeed.settings';
 const HISTORY_KEY = 'vicefeed.history';
 
 export const DEFAULT_SETTINGS = {
-  theme: 'dark',            // system | light | dark
+  theme: 'light',            // system | light | dark
   searchMode: 'keyword',      // keyword | vector
   provider: 'browser',        // browser | openai
   model: 'onnx-community/Florence-2-base-ft',
